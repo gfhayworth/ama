@@ -25,13 +25,15 @@
 
 
 # In[1]:
-
+np
 
 import pickle
 from sentence_transformers import SentenceTransformer, CrossEncoder, util
 import torch
-import numpy as np
-import pandas as pd
+##import numpy as np
+##import pandas as pd
+#numpy==1.22.4
+#pandas==1.4.3
 from flask import Flask, request, render_template
 
 if not torch.cuda.is_available():
