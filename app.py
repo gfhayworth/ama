@@ -34,6 +34,9 @@ import torch
 #numpy==1.22.4
 #pandas==1.4.3
 from flask import Flask, request, render_template
+import io
+from google.cloud import storage
+import os
 
 if not torch.cuda.is_available():
     print("Warning: No GPU found. Please add GPU to your notebook")
@@ -71,54 +74,39 @@ cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 # # We encode all passages into our vector space. This takes about 5 minutes (depends on your GPU speed)
 # corpus_embeddings = bi_encoder.encode(passages, convert_to_tensor=True, show_progress_bar=True)
 
+# # set-up google cloud storage
+key_path = "./keys/ama-wiki-0618-6f37524a11be.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
 
-# In[ ]:
+def download_blob_into_memory(bucket_name, blob_name):
+    """Downloads a blob into memory."""
+    # The ID of your GCS bucket
+    # bucket_name = "your-bucket-name"
 
+    # The ID of your GCS object
+    # blob_name = "storage-object-name"
 
-# from google.colab import drive
-# drive.mount('/content/gdrive')
+    storage_client = storage.Client()
 
+    bucket = storage_client.bucket(bucket_name)
 
-# In[2]:
+    # Construct a client side representation of a blob.
+    # Note `Bucket.blob` differs from `Bucket.get_blob` as it doesn't retrieve
+    # any content from Google Cloud Storage. As we don't need additional data,
+    # using `Bucket.blob` is preferred here.
+    blob = bucket.blob(blob_name)
+    contents = blob.download_as_string()
 
-
-embed_pth = "./data/corpus_embeddings.pt"
-
-
-# In[3]:
-
-
-mycorpus_embeddings = torch.load(embed_pth)
-
-
-# In[8]:
-
-
-#mycorpus_embeddings[0]
-
-
-# In[4]:
-
-
-# write list to binary file
-def write_list(a_list, pth='./data/passages'):
-    # store list in binary file so 'wb' mode
-    with open(pth, 'wb') as fp:
-        pickle.dump(a_list, fp)
-        print('Done writing list into a binary file')
-
-# Read list to memory
-def read_list(pth='./data/passages'):
-    # for reading also binary mode is important
-    with open(pth, 'rb') as fp:
-        n_list = pickle.load(fp)
-        return n_list
+    print(
+        "Downloaded storage object {} from bucket {}.".format(
+            blob_name, bucket_name
+        )
+    )
+    return contents
 
 
-# In[5]:
-
-
-mypassages = read_list()
+mycorpus_embeddings = torch.load(io.BytesIO(download_blob_into_memory("wiki_assets", "corpus_embeddings.pt")))
+mypassages = pickle.loads(download_blob_into_memory("wiki_assets", "passages"))
 
 
 # This function will search all wikipedia articles for passages that
