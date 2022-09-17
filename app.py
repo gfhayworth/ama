@@ -25,7 +25,6 @@
 
 
 # In[1]:
-np
 
 import pickle
 from sentence_transformers import SentenceTransformer, CrossEncoder, util
