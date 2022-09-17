@@ -14,6 +14,7 @@
 .gitignore
 #!include:.gitignore
 /env
+.ipynb
 
 # Python pycache:
 __pycache__/
